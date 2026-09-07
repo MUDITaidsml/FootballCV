@@ -213,6 +213,8 @@ import sys
 import time
 import numpy as np
 
+os.environ["YOLO_CONFIG_DIR"] = "/tmp/Ultralytics"
+
 # Add the current directory to sys.path to import local modules
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
