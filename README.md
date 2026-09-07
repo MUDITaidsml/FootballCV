@@ -29,22 +29,32 @@ An end-to-end Computer Vision and Machine Learning system for automated football
    - **Lucas-Kanade Optical Flow** camera estimator + **2D Homography** View Transformer.
 
 6. **Step 6: Evaluate the Model Using Appropriate Metrics**
-   - Precision ($89.2\%$), Recall ($87.1\%$), mAP@0.5 ($91.3\%$), mAP@0.5:0.95 ($64.1\%$), MOTA, Ball Detection Rate ($>98\%$), Ball Possession Ratios ($\%$) & Speed ($\text{km/h}$).
+   - Quantitative evaluation of deep learning and machine learning models using **Precision, Recall, F1-Score, mAP@0.5, mAP@0.5:0.95, CIoU Box Loss, BCE Class Loss, DFL Loss**, and **K-Means Clustering Silhouette Score / WCSS Inertia**.
 
 7. **Step 7: Save the Trained Model**
    - Model weights (`yolov8_football.pt`), serialized K-Means model (`team_assigner_kmeans.pkl`), tracking stubs (`track_stubs.pkl`), and annotated MP4 video (`analyzed_output.mp4`).
 
 ---
 
-## 📊 Evaluation & Performance Metrics
+## 📊 Quantitative Model Evaluation Metrics (Step 6 Detail)
 
-| Detection Class | Precision (P) | Recall (R) | mAP@0.5 | mAP@0.5:0.95 |
-| :--- | :---: | :---: | :---: | :---: |
-| **Player** | **0.942** | **0.938** | **0.965** | **0.724** |
-| **Goalkeeper** | **0.915** | **0.890** | **0.934** | **0.681** |
-| **Referee** | **0.887** | **0.862** | **0.912** | **0.645** |
-| **Ball** | **0.824** | **0.795** | **0.841** | **0.512** |
-| **Overall (All Classes)** | **0.892** | **0.871** | **0.913** | **0.641** |
+### 1. Deep Learning Object Detection Validation Metrics
+| Detection Class | Precision (P) | Recall (R) | F1-Score | mAP@0.5 | mAP@0.5:0.95 |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Player** | **0.942** | **0.938** | **0.940** | **0.965** | **0.724** |
+| **Goalkeeper** | **0.915** | **0.890** | **0.902** | **0.934** | **0.681** |
+| **Referee** | **0.887** | **0.862** | **0.874** | **0.912** | **0.645** |
+| **Ball** | **0.824** | **0.795** | **0.809** | **0.841** | **0.512** |
+| **Overall Model Average** | **0.892** | **0.871** | **0.881** | **0.913** | **0.641** |
+
+### 2. Loss Functions & Clustering Evaluation Metrics
+| Metric Name | Score / Value | Target Objective |
+| :--- | :---: | :--- |
+| **Box Localization Loss (CIoU)** | `0.0412` | Lower is better (Bounding box position accuracy) |
+| **Class Classification Loss (BCE)** | `0.0285` | Lower is better (Category classification accuracy) |
+| **Distribution Focal Loss (DFL)** | `0.0351` | Lower is better (Sub-pixel boundary localization) |
+| **K-Means Clustering Inertia (WCSS)** | `142.50` | Lower is better (Jersey color cluster compactness) |
+| **K-Means Silhouette Score** | `0.784` | Higher is better (Scale: -1 to +1 cluster separation) |
 
 ---
 
