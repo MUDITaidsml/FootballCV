@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 import streamlit as st
 
 st.set_page_config(
