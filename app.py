@@ -237,13 +237,13 @@ with st.sidebar:
     if os.path.exists('models'):
         local_pts += [os.path.join('models', f) for f in os.listdir('models') if f.endswith('.pt')]
     
-    model_files = list(dict.fromkeys(['yolov8x.pt'] + local_pts))
-    default_idx = 0
+    model_files = list(dict.fromkeys(['yolov8n.pt', 'yolov8s.pt', 'yolov8m.pt', 'yolov8x.pt'] + local_pts))
+    default_idx = 0  # yolov8n.pt is 6MB (super fast, low memory for Cloud)
     selected_model = st.selectbox(
         "YOLO model weights",
         options=model_files,
         index=default_idx,
-        help="Select the YOLO model file to use for detection (yolov8x.pt will auto-download if needed)."
+        help="yolov8n.pt (Nano) is recommended for fast, low-memory cloud execution."
     )
 
     st.markdown("---")

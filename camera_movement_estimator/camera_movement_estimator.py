@@ -97,10 +97,7 @@ class CameraMovementEstimator():
         return camera_movement
     
     def draw_camera_movement(self,frames, camera_movement_per_frame):
-        output_frames=[]
-
         for frame_num, frame in enumerate(frames):
-            frame= frame.copy()
             h, w = frame.shape[:2]
 
             # Scale overlay to frame size (reference 1920px wide)
@@ -118,9 +115,7 @@ class CameraMovementEstimator():
 
             x_movement, y_movement = camera_movement_per_frame[frame_num]
             pad = int(10 * scale)
-            frame = cv2.putText(frame,f"Camera Movement X: {x_movement:.2f}",(pad, pad + line_h), cv2.FONT_HERSHEY_SIMPLEX, font_scale,(0,0,0), thickness)
-            frame = cv2.putText(frame,f"Camera Movement Y: {y_movement:.2f}",(pad, pad + line_h * 2), cv2.FONT_HERSHEY_SIMPLEX, font_scale,(0,0,0), thickness)
+            cv2.putText(frame,f"Camera Movement X: {x_movement:.2f}",(pad, pad + line_h), cv2.FONT_HERSHEY_SIMPLEX, font_scale,(0,0,0), thickness)
+            cv2.putText(frame,f"Camera Movement Y: {y_movement:.2f}",(pad, pad + line_h * 2), cv2.FONT_HERSHEY_SIMPLEX, font_scale,(0,0,0), thickness)
 
-            output_frames.append(frame) 
-
-        return output_frames
+        return frames

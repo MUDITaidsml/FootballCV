@@ -46,13 +46,10 @@ class Tracker:
         return detections
 
     def get_object_tracks(self, frames, read_from_stub=False, stub_path=None):
-        
         if read_from_stub and stub_path is not None and os.path.exists(stub_path):
             with open(stub_path,'rb') as f:
                 tracks = pickle.load(f)
             return tracks
-
-        detections = self.detect_frames(frames)
 
         tracks={
             "players":[],
@@ -60,60 +57,64 @@ class Tracker:
             "ball":[]
         }
 
-        for frame_num, detection in enumerate(detections):
-            cls_names = detection.names
-            cls_names_inv = {v:k for k,v in cls_names.items()}
+        import gc
+        batch_size = 15
+        for i in range(0, len(frames), batch_size):
+            batch_frames = frames[i:i+batch_size]
+            detections_batch = self.model.predict(batch_frames, conf=0.01)
 
-            # Covert to supervision Detection format
-            detection_supervision = sv.Detections.from_ultralytics(detection)
+            for offset, detection in enumerate(detections_batch):
+                frame_num = i + offset
+                cls_names = detection.names
+                cls_names_inv = {v:k for k,v in cls_names.items()}
 
-            # Convert GoalKeeper to player object
-            for object_ind, class_id in enumerate(detection_supervision.class_id):
-                if cls_names[class_id] == "goalkeeper":
-                    # Safely replace goalkeeper with player if player class exists
+                # Covert to supervision Detection format
+                detection_supervision = sv.Detections.from_ultralytics(detection)
+
+                # Convert GoalKeeper to player object
+                for object_ind, class_id in enumerate(detection_supervision.class_id):
+                    if cls_names[class_id] == "goalkeeper":
+                        player_cls_id = cls_names_inv.get('player')
+                        if player_cls_id is not None:
+                            detection_supervision.class_id[object_ind] = player_cls_id
+
+                # Track Objects
+                detection_with_tracks = self.tracker.update_with_detections(detection_supervision)
+
+                tracks["players"].append({})
+                tracks["referees"].append({})
+                tracks["ball"].append({})
+
+                for frame_detection in detection_with_tracks:
+                    bbox = frame_detection[0].tolist()
+                    cls_id = frame_detection[3]
+                    track_id = frame_detection[4]
+
                     player_cls_id = cls_names_inv.get('player')
-                    if player_cls_id is not None:
-                        detection_supervision.class_id[object_ind] = player_cls_id
-
-            # Track Objects
-            detection_with_tracks = self.tracker.update_with_detections(detection_supervision)
-
-            tracks["players"].append({})
-            tracks["referees"].append({})
-            tracks["ball"].append({})
-
-            for frame_detection in detection_with_tracks:
-                bbox = frame_detection[0].tolist()
-                cls_id = frame_detection[3]
-                track_id = frame_detection[4]
-
-                # Safely handle player class; fall back to 'person' for standard COCO YOLO models
-                player_cls_id = cls_names_inv.get('player')
-                if player_cls_id is None:
-                    player_cls_id = cls_names_inv.get('person')
-                if player_cls_id is not None and cls_id == player_cls_id:
-                    tracks["players"][frame_num][track_id] = {"bbox":bbox}
+                    if player_cls_id is None:
+                        player_cls_id = cls_names_inv.get('person')
+                    if player_cls_id is not None and cls_id == player_cls_id:
+                        tracks["players"][frame_num][track_id] = {"bbox":bbox}
+                    
+                    referee_cls_id = cls_names_inv.get('referee')
+                    if referee_cls_id is not None and cls_id == referee_cls_id:
+                        tracks["referees"][frame_num][track_id] = {"bbox":bbox}
                 
-                # Safely handle referee class; some models may not have a 'referee' class name
-                referee_cls_id = cls_names_inv.get('referee')
-                if referee_cls_id is not None and cls_id == referee_cls_id:
-                    tracks["referees"][frame_num][track_id] = {"bbox":bbox}
-            
-            for frame_detection in detection_supervision:
-                bbox = frame_detection[0].tolist()
-                cls_id = frame_detection[3]
+                for frame_detection in detection_supervision:
+                    bbox = frame_detection[0].tolist()
+                    cls_id = frame_detection[3]
 
-                # Detect ball by class name containing "ball" (covers variations like "sports ball", "ball", etc.)
-                class_name = cls_names.get(cls_id, "").lower()
-                if "ball" in class_name:
-                    tracks["ball"][frame_num][1] = {"bbox": bbox}
-                else:
-                    # Preserve previous ball detection fallback (if any)
-                    ball_cls_id = cls_names_inv.get('ball')
-                    if ball_cls_id is None:
-                        ball_cls_id = cls_names_inv.get('sports ball')
-                    if ball_cls_id is not None and cls_id == ball_cls_id:
+                    class_name = cls_names.get(cls_id, "").lower()
+                    if "ball" in class_name:
                         tracks["ball"][frame_num][1] = {"bbox": bbox}
+                    else:
+                        ball_cls_id = cls_names_inv.get('ball')
+                        if ball_cls_id is None:
+                            ball_cls_id = cls_names_inv.get('sports ball')
+                        if ball_cls_id is not None and cls_id == ball_cls_id:
+                            tracks["ball"][frame_num][1] = {"bbox": bbox}
+            del detections_batch
+            gc.collect()
 
         if stub_path is not None:
             with open(stub_path,'wb') as f:
@@ -235,10 +236,7 @@ class Tracker:
             pid for pid, _ in sorted(player_counts.items(), key=lambda x: x[1], reverse=True)[:22]
         )
 
-        output_video_frames= []
         for frame_num, frame in enumerate(video_frames):
-            frame = frame.copy()
-
             # Safely retrieve dictionaries for the current frame, handling missing keys or out-of-range indices
             players_list = tracks.get('players', [])
             ball_list = tracks.get('ball', [])
@@ -252,23 +250,20 @@ class Tracker:
                 if track_id not in top_player_ids:
                     continue
                 color = player.get("team_color",(0,0,255))
-                frame = self.draw_ellipse(frame, player["bbox"],color, track_id)
+                self.draw_ellipse(frame, player["bbox"],color, track_id)
 
                 if player.get('has_ball',False):
-                    frame = self.draw_traingle(frame, player["bbox"],(0,0,255))
+                    self.draw_traingle(frame, player["bbox"],(0,0,255))
 
             # Draw Referee
             for _, referee in referee_dict.items():
-                frame = self.draw_ellipse(frame, referee["bbox"],(0,255,255))
+                self.draw_ellipse(frame, referee["bbox"],(0,255,255))
             
             # Draw ball 
             for track_id, ball in ball_dict.items():
-                frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
-
+                self.draw_traingle(frame, ball["bbox"],(0,255,0))
 
             # Draw Team Ball Control
-            frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
+            self.draw_team_ball_control(frame, frame_num, team_ball_control)
 
-            output_video_frames.append(frame)
-
-        return output_video_frames
+        return video_frames
