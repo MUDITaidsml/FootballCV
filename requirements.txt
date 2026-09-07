@@ -8,3 +8,5 @@ matplotlib
 filterpy
 lapx
 supervision
+imageio
+imageio-ffmpeg

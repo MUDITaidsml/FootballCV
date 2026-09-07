@@ -41,18 +41,22 @@ def save_video(ouput_video_frames,output_video_path):
     out.release()
 
 
-def save_video_mp4(output_video_frames, output_video_path):
+def save_video_mp4(output_video_frames, output_video_path, fps=24):
     """Save frames as an H.264-compatible MP4 that Streamlit's st.video() can play."""
+    if not output_video_frames:
+        return
+    try:
+        import imageio
+        # imageio expects RGB format (OpenCV frames are BGR)
+        rgb_frames = [cv2.cvtColor(f, cv2.COLOR_BGR2RGB) for f in output_video_frames]
+        imageio.mimwrite(output_video_path, rgb_frames, fps=fps, codec='libx264', quality=8)
+        return
+    except Exception as e:
+        print(f"imageio save notice ({e}); falling back to OpenCV VideoWriter")
+
     h, w = output_video_frames[0].shape[:2]
-    # Try H.264 codec first, fall back to mp4v which is universally available
-    for codec in ['avc1', 'H264', 'mp4v']:
-        fourcc = cv2.VideoWriter_fourcc(*codec)
-        out = cv2.VideoWriter(output_video_path, fourcc, 24, (w, h))
-        if out.isOpened():
-            break
-        out.release()
-    else:
-        raise RuntimeError("Could not find a suitable MP4 codec. Install ffmpeg or OpenCV with H.264 support.")
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(output_video_path, fourcc, fps, (w, h))
     for frame in output_video_frames:
         out.write(frame)
     out.release()

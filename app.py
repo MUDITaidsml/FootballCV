@@ -255,7 +255,7 @@ with st.sidebar:
                        help="Width to downscale each frame to before processing.")
     height = st.slider("Frame height (px)", 180, 720, 360, 18,
                         help="Height to downscale each frame to before processing.")
-    max_frames = st.slider("Max frames to process", 10, 2000, 300, 10,
+    max_frames = st.slider("Max frames to process", 10, 2000, 120, 10,
                             help="Maximum number of frames to read from the video.")
     skip_interval = st.slider("Process every Nth frame", 1, 5, 1,
                                help="Skip frames to speed up processing. 1 = every frame.")
@@ -267,8 +267,6 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-# ── Cached tracker ───────────────────────────────────────────────────────────
-@st.cache_resource
 def get_tracker(model_name):
     return Tracker(model_name)
 
