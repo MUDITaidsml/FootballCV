@@ -233,16 +233,17 @@ with st.sidebar:
     st.markdown("---")
 
     st.markdown("##### 🤖 Model")
-    model_files = [f for f in os.listdir('.') if f.endswith('.pt')]
-    if not model_files:
-        st.error("No `.pt` model files found in project root.")
-        st.stop()
-    default_idx = model_files.index('yolov8x.pt') if 'yolov8x.pt' in model_files else 0
+    local_pts = [f for f in os.listdir('.') if f.endswith('.pt')]
+    if os.path.exists('models'):
+        local_pts += [os.path.join('models', f) for f in os.listdir('models') if f.endswith('.pt')]
+    
+    model_files = list(dict.fromkeys(['yolov8x.pt'] + local_pts))
+    default_idx = 0
     selected_model = st.selectbox(
         "YOLO model weights",
         options=model_files,
         index=default_idx,
-        help="Select the YOLO model file to use for detection."
+        help="Select the YOLO model file to use for detection (yolov8x.pt will auto-download if needed)."
     )
 
     st.markdown("---")
