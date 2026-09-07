@@ -1,0 +1,10 @@
+ultralytics
+opencv-python
+scikit-learn
+streamlit
+pandas
+numpy
+matplotlib
+filterpy
+lapx
+supervision

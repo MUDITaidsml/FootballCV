@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pt
+*.mp4
+*.avi
+*.pkl
+.vscode/
+stubs/*.pkl
+output_videos/*.mp4
+output_videos/*.avi
