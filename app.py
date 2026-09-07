@@ -209,12 +209,19 @@ button[data-baseweb="tab"] {
 </style>
 """, unsafe_allow_html=True)
 
-import cv2
 import tempfile
 import os
 import sys
 import time
 import numpy as np
+
+try:
+    import cv2
+except ImportError as err:
+    import traceback
+    st.error(f"❌ OpenCV Import Error: {err}")
+    st.code(traceback.format_exc(), language="python")
+    st.stop()
 
 os.environ["YOLO_CONFIG_DIR"] = "/tmp/Ultralytics"
 
