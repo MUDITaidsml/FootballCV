@@ -9,6 +9,33 @@ An end-to-end Computer Vision and Machine Learning system for automated football
 
 ---
 
+## 🧠 AI / Machine Learning & Computer Vision Techniques
+
+| Technique / Model | Category | Function & Usage in Project |
+| :--- | :--- | :--- |
+| **YOLOv8** *(Ultralytics)* | **Deep Learning (CNN)** | Object detection for real-time identification of players, referees, and the football in video frames. Supports `yolov8n`, `yolov8s`, and `yolov8x`. |
+| **ByteTrack** | **Multi-Object Tracking (MOT)** | Association-by-detection algorithm maintaining persistent Player IDs and tracking trajectories across frames through occlusions. |
+| **K-Means Clustering** | **Unsupervised ML** | Color space clustering on player jersey bounding box pixels to automatically classify players into Team 1 vs. Team 2. |
+| **Lucas-Kanade Optical Flow** | **Computer Vision** | Feature point tracking (`cv2.goodFeaturesToTrack` & `calcOpticalFlowPyrLK`) along pitch boundaries to measure camera panning and zooming offsets. |
+| **2D Homography** | **Projective Geometry** | Perspective transformation mapping 2D pixel coordinates $(x, y)$ into real-world pitch ground coordinates in meters $(X, Y)$. |
+| **Cubic Spline Interpolation** | **Data Imputation** | Fills missing ball detections caused by fast movement or player occlusions across continuous frames. |
+| **Euclidean Proximity Analysis** | **Spatial Kinematics** | Measures foot-to-ball distance ($\sqrt{\Delta x^2 + \Delta y^2}$) to determine individual player possession and overall team control ratios. |
+| **Kinematic Speed Estimation** | **Motion Metrics** | Computes frame-by-frame velocity in $\text{km/h}$ and total distance covered in meters based on transformed pitch coordinates and frame rates. |
+
+---
+
+## 🛠️ Software Stack & Technologies
+
+- **Deep Learning Framework**: PyTorch, Ultralytics (`ultralytics`).
+- **Computer Vision Libraries**: OpenCV (`opencv-python-headless`), Supervision (`supervision`).
+- **Machine Learning & Data Science**: Scikit-Learn (`scikit-learn`), NumPy (`numpy`), Pandas (`pandas`), SciPy (`scipy`).
+- **Data Visualization**: Matplotlib (`matplotlib`).
+- **Video & Media Processing**: ImageIO (`imageio`), ImageIO-FFmpeg (`imageio-ffmpeg`), OpenCV VideoWriter (H.264 MP4).
+- **Web App Framework**: Streamlit (`streamlit`).
+- **Environment & Hosting**: Python 3.10+, Streamlit Community Cloud, Google Colab (GPU), Git / GitHub.
+
+---
+
 ## 🌟 Key Features
 
 1. **🤖 Multi-Object Detection & Tracking**: Powered by **YOLOv8** and **ByteTrack** to persistently track players, referees, and the ball across frames.
